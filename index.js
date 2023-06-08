@@ -33,6 +33,7 @@ async function run() {
     const allInstructorCollection = client
       .db("SportsInstituteDB")
       .collection("allInstructor");
+    const usersCollection = client.db("SportsInstituteDB").collection("users");
 
     // Class related apis
     app.get("/allClass", async (req, res) => {
@@ -43,6 +44,23 @@ async function run() {
     // Instructor related apis
     app.get("/allInstructor", async (req, res) => {
       const result = await allInstructorCollection.find().toArray();
+      res.send(result);
+    });
+
+    // user related apis
+    app.get("/users", async (req, res) => {
+      const result = await usersCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      const query = { email: user.email };
+      const existingUser = await usersCollection.findOne(query);
+      if (existingUser) {
+        return res.send({ message: "User already exists" });
+      }
+      const result = await usersCollection.insertOne(user);
       res.send(result);
     });
 
