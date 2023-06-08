@@ -26,10 +26,25 @@ async function run() {
     // Connect the client to the server
     await client.connect();
 
-    // Database Collection
+    // Collect Database Collection
     const allClassCollection = client
       .db("SportsInstituteDB")
       .collection("allClass");
+    const allInstructorCollection = client
+      .db("SportsInstituteDB")
+      .collection("allInstructor");
+
+    // Class related apis
+    app.get("/allClass", async (req, res) => {
+      const result = await allClassCollection.find().toArray();
+      res.send(result);
+    });
+
+    // Instructor related apis
+    app.get("/allInstructor", async (req, res) => {
+      const result = await allInstructorCollection.find().toArray();
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
