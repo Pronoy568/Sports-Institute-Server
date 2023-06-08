@@ -9,6 +9,40 @@ require("dotenv").config();
 app.use(cors());
 app.use(express.json());
 
+const { MongoClient, ServerApiVersion } = require("mongodb");
+const uri = `mongodb+srv://${process.env.DBUSER}:${process.env.DBPASS}@cluster0.vqc0wwo.mongodb.net/?retryWrites=true&w=majority`;
+
+// Create a MongoClient with a MongoClientOptions
+const client = new MongoClient(uri, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  },
+});
+
+async function run() {
+  try {
+    // Connect the client to the server
+    await client.connect();
+
+    // Database Collection
+    const allClassCollection = client
+      .db("SportsInstituteDB")
+      .collection("allClass");
+
+    // Send a ping to confirm a successful connection
+    await client.db("admin").command({ ping: 1 });
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
+  } finally {
+    // Ensures that the client will close when you finish/error
+    // await client.close();
+  }
+}
+run().catch(console.dir);
+
 app.get("/", (req, res) => {
   res.send("Sports Institute server is running !!!");
 });
