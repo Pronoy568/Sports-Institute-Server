@@ -74,6 +74,12 @@ async function run() {
       res.send(result);
     });
 
+    app.post("/allClass", async (req, res) => {
+      const newClass = req.body;
+      const result = await allClassCollection.insertOne(newClass);
+      res.send(result);
+    });
+
     // Instructor related apis
     app.get("/allInstructor", async (req, res) => {
       const result = await allInstructorCollection.find().toArray();
