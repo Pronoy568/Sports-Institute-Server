@@ -120,8 +120,15 @@ async function run() {
     });
 
     // Class related apis
+    // app.get("/allClass", async (req, res) => {
+    //   const result = await allClassCollection.find().toArray();
+    //   res.send(result);
+    // });
     app.get("/allClass", async (req, res) => {
-      const result = await allClassCollection.find().toArray();
+      const result = await allClassCollection
+        .find()
+        .sort({ numberStudent: -1 })
+        .toArray();
       res.send(result);
     });
 
@@ -133,7 +140,10 @@ async function run() {
 
     // Instructor related apis
     app.get("/allInstructor", async (req, res) => {
-      const result = await allInstructorCollection.find().toArray();
+      const result = await allInstructorCollection
+        .find()
+        .sort({ classNumber: -1 })
+        .toArray();
       res.send(result);
     });
 
