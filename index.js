@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const app = express();
 const port = process.env.PORT || 5000;
 require("dotenv").config();
+const stripe = require("stripe")(process.env.PAYMENT_SECRET_KEY);
 
 // middleware
 app.use(cors());
@@ -58,6 +59,41 @@ async function run() {
     const selectedClassCollection = client
       .db("SportsInstituteDB")
       .collection("selectedClass");
+    const paymentCollection = client
+      .db("SportsInstituteDB")
+      .collection("payments");
+
+    // create payment intent
+    app.post("/create-payment-intent", verifyJWT, async (req, res) => {
+      const { price } = req.body;
+      if (price) {
+        const amount = parseInt(price * 100);
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: amount,
+          currency: "usd",
+          payment_method_types: ["card"],
+        });
+        res.send({
+          clientSecret: paymentIntent.client_secret,
+        });
+      }
+    });
+
+    // payment related api
+    app.post("/payments", verifyJWT, async (req, res) => {
+      const payment = req.body;
+      // console.log(payment.selectedPayment);
+
+      // const query = {
+      //   _id: { $in: payment.selectedClass.map((id) => new ObjectId(id)) },
+      // };
+      const insertResult = await paymentCollection.insertOne(payment);
+      const deleteResult = await paymentCollection.deleteOne(
+        payment.selectedPayment
+      );
+
+      res.send({ result: insertResult, deleteResult });
+    });
 
     // jwt related apis
     app.post("/jwt", (req, res) => {
@@ -69,8 +105,20 @@ async function run() {
     });
 
     // Class related apis
+    // app.get("/allClass", async (req, res) => {
+    //   const result = await allClassCollection.find().toArray();
+    //   res.send(result);
+    // });
+
     app.get("/allClass", async (req, res) => {
-      const result = await allClassCollection.find().toArray();
+      const { status } = req.query;
+
+      let filter = {};
+      if (status && ["pending", "approved", "denied"].includes(status)) {
+        filter.status = status;
+      }
+
+      const result = await allClassCollection.find(filter).toArray();
       res.send(result);
     });
 
