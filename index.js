@@ -125,18 +125,6 @@ async function run() {
       res.send(result);
     });
 
-    // app.get("/allClass", async (req, res) => {
-    //   const { status } = req.query;
-
-    //   let filter = {};
-    //   if (status && ["pending", "approved", "denied"].includes(status)) {
-    //     filter.status = status;
-    //   }
-
-    //   const result = await allClassCollection.find(filter).toArray();
-    //   res.send(result);
-    // });
-
     app.post("/allClass", async (req, res) => {
       const newClass = req.body;
       const result = await allClassCollection.insertOne(newClass);
