@@ -80,19 +80,34 @@ async function run() {
     });
 
     // payment related api
+    app.get("/payments", async (req, res) => {
+      const email = req.query.email;
+      if (!email) {
+        res.send([]);
+      }
+      const query = { email: email };
+      const result = await paymentCollection
+        .find(query)
+        .sort({ _id: -1 })
+        .toArray();
+      res.send(result);
+    });
+
     app.post("/payments", verifyJWT, async (req, res) => {
       const payment = req.body;
-      // console.log(payment.selectedPayment);
+      const query = {
+        _id: new ObjectId(payment.selectedPayment._id),
+      };
+      const updateQuery = {
+        _id: new ObjectId(payment.selectedPayment.classItemId),
+      };
+      const updateSeat = await allClassCollection.updateOne(updateQuery, {
+        $inc: { availableSeats: -1 },
+      });
 
-      // const query = {
-      //   _id: { $in: payment.selectedClass.map((id) => new ObjectId(id)) },
-      // };
       const insertResult = await paymentCollection.insertOne(payment);
-      const deleteResult = await paymentCollection.deleteOne(
-        payment.selectedPayment
-      );
-
-      res.send({ result: insertResult, deleteResult });
+      const deleteResult = await selectedClassCollection.deleteOne(query);
+      res.send({ result: insertResult, deleteResult, updateSeat });
     });
 
     // jwt related apis
@@ -105,22 +120,22 @@ async function run() {
     });
 
     // Class related apis
-    // app.get("/allClass", async (req, res) => {
-    //   const result = await allClassCollection.find().toArray();
-    //   res.send(result);
-    // });
-
     app.get("/allClass", async (req, res) => {
-      const { status } = req.query;
-
-      let filter = {};
-      if (status && ["pending", "approved", "denied"].includes(status)) {
-        filter.status = status;
-      }
-
-      const result = await allClassCollection.find(filter).toArray();
+      const result = await allClassCollection.find().toArray();
       res.send(result);
     });
+
+    // app.get("/allClass", async (req, res) => {
+    //   const { status } = req.query;
+
+    //   let filter = {};
+    //   if (status && ["pending", "approved", "denied"].includes(status)) {
+    //     filter.status = status;
+    //   }
+
+    //   const result = await allClassCollection.find(filter).toArray();
+    //   res.send(result);
+    // });
 
     app.post("/allClass", async (req, res) => {
       const newClass = req.body;
