@@ -80,7 +80,7 @@ async function run() {
     });
 
     // payment related api
-    app.get("/payments", async (req, res) => {
+    app.get("/payments", verifyJWT, async (req, res) => {
       const email = req.query.email;
       if (!email) {
         res.send([]);
@@ -120,10 +120,6 @@ async function run() {
     });
 
     // Class related apis
-    // app.get("/allClass", async (req, res) => {
-    //   const result = await allClassCollection.find().toArray();
-    //   res.send(result);
-    // });
     app.get("/allClass", async (req, res) => {
       const result = await allClassCollection
         .find()
@@ -132,7 +128,7 @@ async function run() {
       res.send(result);
     });
 
-    app.post("/allClass", async (req, res) => {
+    app.post("/allClass", verifyJWT, async (req, res) => {
       const newClass = req.body;
       const result = await allClassCollection.insertOne(newClass);
       res.send(result);
@@ -188,7 +184,7 @@ async function run() {
       res.send(result);
     });
 
-    app.patch("/users/instructor/:id", async (req, res) => {
+    app.patch("/users/instructor/:id", verifyJWT, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
@@ -231,7 +227,7 @@ async function run() {
       res.send(result);
     });
 
-    app.post("/selectedClass", async (req, res) => {
+    app.post("/selectedClass", verifyJWT, async (req, res) => {
       const item = req.body;
       const result = await selectedClassCollection.insertOne(item);
       res.send(result);
