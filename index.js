@@ -41,12 +41,20 @@ const client = new MongoClient(uri, {
     strict: true,
     deprecationErrors: true,
   },
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  maxPoolSize: 10,
 });
 
 async function run() {
   try {
     // Connect the client to the server
-    await client.connect();
+    client.connect((err) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+    });
 
     // Collect Database Collection
     const allClassCollection = client
@@ -80,7 +88,7 @@ async function run() {
     });
 
     // payment related api
-    app.get("/payments", verifyJWT, async (req, res) => {
+    app.get("/payments", async (req, res) => {
       const email = req.query.email;
       if (!email) {
         res.send([]);
@@ -128,7 +136,7 @@ async function run() {
       res.send(result);
     });
 
-    app.post("/allClass", verifyJWT, async (req, res) => {
+    app.post("/allClass", async (req, res) => {
       const newClass = req.body;
       const result = await allClassCollection.insertOne(newClass);
       res.send(result);
@@ -184,7 +192,7 @@ async function run() {
       res.send(result);
     });
 
-    app.patch("/users/instructor/:id", verifyJWT, async (req, res) => {
+    app.patch("/users/instructor/:id", async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
@@ -208,6 +216,20 @@ async function run() {
       res.send(result);
     });
 
+    // user
+    app.get("/users/user/:email", verifyJWT, async (req, res) => {
+      const email = req.params.email;
+
+      const decodedEmail = req.decoded.email;
+      if (email !== decodedEmail) {
+        return res.send({ user: false });
+      }
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      const result = { user: user?.role === "student" };
+      res.send(result);
+    });
+
     //selected class related apis
     app.get("/selectedClass", verifyJWT, async (req, res) => {
       const email = req.query.email;
@@ -227,7 +249,7 @@ async function run() {
       res.send(result);
     });
 
-    app.post("/selectedClass", verifyJWT, async (req, res) => {
+    app.post("/selectedClass", async (req, res) => {
       const item = req.body;
       const result = await selectedClassCollection.insertOne(item);
       res.send(result);
